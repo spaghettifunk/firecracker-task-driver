@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/nomad/client/stats"
 	"github.com/hashicorp/nomad/plugins/drivers"
 	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 var (
@@ -48,9 +49,7 @@ type taskHandle struct {
 	completedAt     time.Time
 	exitResult      *drivers.ExitResult
 
-	cpuStatsSys   *stats.CpuStats
-	cpuStatsUser  *stats.CpuStats
-	cpuStatsTotal *stats.CpuStats
+	cpuStats *stats.HostCpuStatsCalculator
 }
 
 func (h *taskHandle) TaskStatus() *drivers.TaskStatus {
@@ -159,12 +158,18 @@ func (h *taskHandle) stats(ctx context.Context, statsChannel chan *drivers.TaskR
 
 		cs := &drivers.CpuStats{}
 		if cpuStats, err := p.Times(); err == nil {
-			cs.SystemMode = h.cpuStatsSys.Percent(cpuStats.System * float64(time.Second))
-			cs.UserMode = h.cpuStatsUser.Percent(cpuStats.User * float64(time.Second))
-			cs.Measured = firecrackerCPUStats
+			times := cpu.TimesStat{
+				User:   cpuStats.User * float64(time.Second),
+				Idle:   cpuStats.Idle * float64(time.Second),
+				System: cpuStats.System * float64(time.Second),
+			}
 
-			// calculate cpu usage percent
-			cs.Percent = h.cpuStatsTotal.Percent(cpuStats.Total() * float64(time.Second))
+			_, user, system, total := h.cpuStats.Calculate(times)
+
+			cs.UserMode = user
+			cs.SystemMode = system
+			cs.Percent = total * float64(time.Second)
+			cs.Measured = firecrackerCPUStats
 		}
 		h.stateLock.Unlock()
 

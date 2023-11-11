@@ -266,9 +266,7 @@ func (d *Driver) RecoverTask(handle *drivers.TaskHandle) error {
 		MachineInstance: m.Machine,
 		Info:            m.Info,
 		logger:          d.logger,
-		cpuStatsSys:     stats.NewCpuStats(),
-		cpuStatsUser:    stats.NewCpuStats(),
-		cpuStatsTotal:   stats.NewCpuStats(),
+		cpuStats:        stats.NewHostCpuStatsCalculator(),
 	}
 
 	d.tasks.Set(taskState.TaskConfig.ID, h)
@@ -304,9 +302,7 @@ func (d *Driver) StartTask(cfg *drivers.TaskConfig) (*drivers.TaskHandle, *drive
 		MachineInstance: m.Machine,
 		Info:            m.Info,
 		logger:          d.logger,
-		cpuStatsSys:     stats.NewCpuStats(),
-		cpuStatsUser:    stats.NewCpuStats(),
-		cpuStatsTotal:   stats.NewCpuStats(),
+		cpuStats:        stats.NewHostCpuStatsCalculator(),
 	}
 
 	driverState := TaskState{

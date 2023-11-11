@@ -198,9 +198,12 @@ func (d *Driver) initializeContainer(ctx context.Context, cfg *drivers.TaskConfi
 		ip = "No network chosen"
 		vnic = ip
 	}
-	info := Instance_info{Serial: ftty, AllocId: cfg.AllocID,
-		Ip:  ip,
-		Pid: strconv.Itoa(pid), Vnic: vnic}
+	info := Instance_info{
+		Serial:  ftty,
+		AllocId: cfg.AllocID,
+		Ip:      ip,
+		Pid:     strconv.Itoa(pid), Vnic: vnic,
+	}
 
 	f, _ := json.MarshalIndent(info, "", " ")
 
